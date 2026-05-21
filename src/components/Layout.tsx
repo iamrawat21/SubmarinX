@@ -1,6 +1,7 @@
-import { motion, useScroll, useTransform, useMotionValue } from 'motion/react';
-import { Shield, Terminal } from 'lucide-react';
+import { motion, useScroll, useTransform, useMotionValue, AnimatePresence } from 'motion/react';
+import { Shield, Terminal, X } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
+import { supabase } from '../supabase';
 
 function NavLink({ name, href, id, scrollY }: any) {
   const widthMV = useMotionValue(0);
@@ -56,50 +57,171 @@ function NavLink({ name, href, id, scrollY }: any) {
 }
 
 function Navbar({ navBg, navBorder, textColor, isReady, linksX, scrollY }: any) {
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isContactSubmitting, setIsContactSubmitting] = useState(false);
+  const [isContactSuccess, setIsContactSuccess] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsContactSubmitting(true);
+    try {
+      const { error } = await supabase.from('contact_us').insert([{ email: contactEmail, message: contactMessage }]);
+      if (error) throw error;
+      setIsContactSuccess(true);
+      setTimeout(() => {
+        setIsContactOpen(false);
+        setTimeout(() => {
+          setIsContactSuccess(false);
+          setContactEmail('');
+          setContactMessage('');
+        }, 300);
+      }, 2000);
+    } catch (error: any) {
+      console.error(error);
+      alert('Failed to send transmission: ' + (error.message || JSON.stringify(error)));
+    } finally {
+      setIsContactSubmitting(false);
+    }
+  };
+
   if (!isReady) return null;
 
   return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      style={{ backgroundColor: navBg, borderColor: navBorder, color: textColor }}
-      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 md:px-12 backdrop-blur-md border-b"
-    >
-      <div className="flex items-center gap-12">
-        {/* Invisible placeholder for the floating logo */}
-        <div className="h-8 w-[100px] md:h-10 md:w-[120px] shrink-0 invisible" />
-
-        <motion.div
-          style={{ x: linksX }}
-          className="hidden md:flex items-center gap-8 font-mono text-[11px] uppercase tracking-widest"
-        >
-          {[
-            { name: "Architecture", href: "#architecture", id: "architecture" },
-            { name: "Threat Matrix", href: "#threat-matrix", id: "threat-matrix" },
-            { name: "Command Center", href: "#command-center", id: "command-center" }
-          ].map((link) => (
-            <NavLink key={link.id} {...link} scrollY={scrollY} />
-          ))}
-        </motion.div>
-      </div>
-
-      <motion.button
-        style={{ borderColor: navBorder }}
-        className="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full border transition-colors duration-300 font-medium hover:bg-cyan-500 hover:text-white"
+    <>
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{ backgroundColor: navBg, borderColor: navBorder, color: textColor }}
+        className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-4 md:px-12 backdrop-blur-md border-b"
       >
-        <Shield className="w-4 h-4" />
-        <span>Request Air-Gapped Demo</span>
-      </motion.button>
-      <button className="md:hidden p-2">
-        <Terminal className="w-6 h-6 text-cyan-500" />
-      </button>
-    </motion.nav>
+        <div className="flex items-center gap-12">
+          {/* Invisible placeholder for the floating logo */}
+          <div className="h-8 w-[100px] md:h-10 md:w-[120px] shrink-0 invisible" />
+
+          <motion.div
+            style={{ x: linksX }}
+            className="hidden md:flex items-center gap-8 font-mono text-[11px] uppercase tracking-widest"
+          >
+            {[
+              { name: "Architecture", href: "#architecture", id: "architecture" },
+              { name: "Threat Matrix", href: "#threat-matrix", id: "threat-matrix" },
+              { name: "Command Center", href: "#command-center", id: "command-center" }
+            ].map((link) => (
+              <NavLink key={link.id} {...link} scrollY={scrollY} />
+            ))}
+          </motion.div>
+        </div>
+        <motion.button
+          onClick={() => setIsContactOpen(true)}
+          style={{ borderColor: navBorder }}
+          className="group relative hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full border transition-colors duration-300 font-mono text-[11px] uppercase tracking-widest overflow-hidden hover:text-cyan-400"
+        >
+          <div className="absolute inset-0 bg-cyan-500/25 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-0" />
+          <span className="relative z-10 transition-colors duration-300">Contact Us</span>
+        </motion.button>
+        <button className="md:hidden p-2">
+          <Terminal className="w-6 h-6 text-cyan-500" />
+        </button>
+      </motion.nav>
+
+      <AnimatePresence>
+        {isContactOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#00040a] border border-white/10 p-8 rounded-2xl max-w-md w-full relative shadow-2xl"
+            >
+              <button
+                onClick={() => setIsContactOpen(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              {isContactSuccess ? (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center py-8 text-center"
+                >
+                  <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    <Shield className="w-8 h-8 text-emerald-400" />
+                  </div>
+                  <h3 className="font-display text-2xl font-semibold mb-2 text-white">Transmission Secured</h3>
+                  <p className="text-slate-400 font-mono text-sm">We will be in touch shortly.</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <h3 className="font-display text-2xl font-semibold mb-2 text-white">Contact Us</h3>
+                  <p className="text-slate-400 mb-6 font-mono text-sm">Send us a secure transmission.</p>
+                  <form className="space-y-4 flex flex-col" onSubmit={handleContactSubmit}>
+                    <div>
+                      <label className="block text-slate-300 font-mono text-xs mb-1 uppercase tracking-wider">Email</label>
+                      <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 transition-colors" placeholder="hq@enterprise.com" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 font-mono text-xs mb-1 uppercase tracking-wider">Message</label>
+                      <textarea rows={4} value={contactMessage} onChange={e => setContactMessage(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 transition-colors resize-none" placeholder="Enter your transmission..."></textarea>
+                    </div>
+                    <button type="submit" disabled={isContactSubmitting} className="w-full bg-white text-slate-950 font-medium py-3 rounded-lg hover:bg-cyan-400 transition-colors duration-300 mt-2 disabled:opacity-50">
+                      {isContactSubmitting ? 'Sending...' : 'Send Transmission'}
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
 function Footer() {
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistOrg, setWaitlistOrg] = useState('');
+  const [isWaitlistSubmitting, setIsWaitlistSubmitting] = useState(false);
+  const [isWaitlistSuccess, setIsWaitlistSuccess] = useState(false);
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsWaitlistSubmitting(true);
+    try {
+      const { error } = await supabase.from('waitlist').insert([{ email: waitlistEmail, organization_name: waitlistOrg }]);
+      if (error) throw error;
+      setIsWaitlistSuccess(true);
+      setTimeout(() => {
+        setIsWaitlistOpen(false);
+        setTimeout(() => {
+          setIsWaitlistSuccess(false);
+          setWaitlistEmail('');
+          setWaitlistOrg('');
+        }, 300);
+      }, 2000);
+    } catch (error: any) {
+      console.error(error);
+      alert('Failed to join waitlist: ' + (error.message || JSON.stringify(error)));
+    } finally {
+      setIsWaitlistSubmitting(false);
+    }
+  };
+
   return (
+    <>
     <footer className="relative bg-[#00040a] border-t border-white/5 pt-24 pb-12 px-6 md:px-12 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_center,rgba(6,182,212,0.1)_0%,transparent_70%)] pointer-events-none" />
 
@@ -116,11 +238,12 @@ function Footer() {
               submarinx is currently rolling out early-access deployment windows for qualified high-security enterprises, MSMEs, and financial labs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 rounded-full bg-white text-slate-950 font-medium hover:bg-cyan-400 transition-colors duration-300">
-                Request an Air-Gapped Demo
-              </button>
-              <button className="px-8 py-4 rounded-full bg-slate-900 border border-slate-700 text-white font-medium hover:bg-slate-800 transition-colors duration-300">
-                Join Early Access Waitlist
+              <button 
+                onClick={() => setIsWaitlistOpen(true)}
+                className="group relative overflow-hidden px-8 py-4 rounded-full border border-white/20 text-white font-medium hover:text-cyan-400 transition-colors duration-300"
+              >
+                <div className="absolute inset-0 bg-cyan-500/25 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-0" />
+                <span className="relative z-10 transition-colors duration-300">Join Early Access Waitlist</span>
               </button>
             </div>
           </div>
@@ -138,10 +261,69 @@ function Footer() {
             <Shield className="w-4 h-4" />
             <span>Autonomous Active Defense. Completely Submerged.</span>
           </div>
-          <p>Report security issues: security@submarinx.com</p>
         </div>
       </div>
     </footer>
+    <AnimatePresence>
+      {isWaitlistOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="bg-[#00040a] border border-white/10 p-8 rounded-2xl max-w-md w-full relative shadow-2xl"
+          >
+            <button
+              onClick={() => setIsWaitlistOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            {isWaitlistSuccess ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center justify-center py-8 text-center"
+              >
+                <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                  <Shield className="w-8 h-8 text-cyan-400" />
+                </div>
+                <h3 className="font-display text-2xl font-semibold mb-2 text-white">Waitlist Joined</h3>
+                <p className="text-slate-400 font-mono text-sm">We will be in touch shortly.</p>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <h3 className="font-display text-2xl font-semibold mb-2 text-white">Join Waitlist</h3>
+                <p className="text-slate-400 mb-6 font-mono text-sm">Request a deployment window for your infrastructure.</p>
+                <form className="space-y-4 flex flex-col" onSubmit={handleWaitlistSubmit}>
+                  <div>
+                    <label className="block text-slate-300 font-mono text-xs mb-1 uppercase tracking-wider">Work Email</label>
+                    <input type="email" value={waitlistEmail} onChange={e => setWaitlistEmail(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 transition-colors" placeholder="admin@enterprise.com" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-300 font-mono text-xs mb-1 uppercase tracking-wider">Organization Name</label>
+                    <input type="text" value={waitlistOrg} onChange={e => setWaitlistOrg(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500/50 transition-colors" placeholder="Acme Corp" />
+                  </div>
+                  <button type="submit" disabled={isWaitlistSubmitting} className="w-full bg-white text-slate-950 font-medium py-3 rounded-lg hover:bg-cyan-400 transition-colors duration-300 mt-2 disabled:opacity-50">
+                    {isWaitlistSubmitting ? 'Submitting...' : 'Submit Request'}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
 
