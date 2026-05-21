@@ -1,0 +1,6 @@
+{
+  "name": "submarinx",
+  "description": "An autonomous, air-gapped active defense cybersecurity engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
