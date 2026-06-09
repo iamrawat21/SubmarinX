@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform, useMotionValue, AnimatePresence } from 'motion/react';
 import { Shield, Terminal, X } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
+import React from 'react';
 import { supabase } from '../supabase';
 
 function NavLink({ name, href, id, scrollY }: any) {
@@ -108,7 +109,7 @@ function Navbar({ navBg, navBorder, textColor, isReady, linksX, scrollY }: any) 
             {[
               { name: "Architecture", href: "#architecture", id: "architecture" },
               { name: "Threat Matrix", href: "#threat-matrix", id: "threat-matrix" },
-              { name: "Command Center", href: "#command-center", id: "command-center" }
+              { name: "Who We Help", href: "#who-we-help", id: "who-we-help" }
             ].map((link) => (
               <NavLink key={link.id} {...link} scrollY={scrollY} />
             ))}
@@ -225,7 +226,7 @@ function Footer() {
     <footer className="relative bg-[#00040a] border-t border-white/5 pt-24 pb-12 px-6 md:px-12 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_center,rgba(6,182,212,0.1)_0%,transparent_70%)] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-[1536px] mx-auto relative z-10 px-4 md:px-12">
         <div className="grid md:grid-cols-2 gap-16 items-end mb-24">
           <div>
             <h2 className="font-display text-5xl md:text-7xl font-semibold tracking-tighter mb-6 text-white">
