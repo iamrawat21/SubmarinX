@@ -5,18 +5,6 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Platform: Linux | macOS | Windows](https://img.shields.io/badge/platform-Cross--Platform-lightgrey.svg)]()
 
-## 📖 Table of Contents
-- [About the Project](#about-the-project)
-- [Core Capabilities](#core-capabilities)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Agent Installation](#agent-installation)
-- [Usage & CLI](#usage--cli)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
-
 ---
 
 ## 🎯 About the Project
